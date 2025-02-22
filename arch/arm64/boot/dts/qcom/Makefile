@@ -539,6 +539,7 @@ dtb-$(CONFIG_MACH_XIAOMI_SAKURA) += msm8953-qrd-sku3-sakura.dtb
 dtb-$(CONFIG_MACH_XIAOMI_TISSOT) += msm8953-qrd-sku3-tissot.dtb
 dtb-$(CONFIG_MACH_XIAOMI_VINCE) += msm8953-qrd-sku3-vince.dtb
 dtb-$(CONFIG_MACH_XIAOMI_YSL) += msm8953-pmi8940-mtp-ysl.dtb
+dtb-$(CONFIG_MACH_XIAOMI_MARKW) += msm8953-qrd-wt88553.dtb
 else
 dtb-$(CONFIG_ARCH_MSM8953) += msm8953-cdp.dtb \
 	msm8953-mtp.dtb \

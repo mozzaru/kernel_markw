@@ -1482,4 +1482,8 @@ source "drivers/input/touchscreen/td4310_e7/Kconfig"
 source "drivers/input/touchscreen/td4310_lansi_e7/Kconfig"
 source "drivers/input/touchscreen/vituralsar_e7/Kconfig"
 
+source "drivers/input/touchscreen/Atmel308U/Kconfig"
+
+source "drivers/input/touchscreen/FT5346/Kconfig"
+
 endif

@@ -20,8 +20,11 @@
 #include <media/rc-core.h>
 #include "rc-core-priv.h"
 
+#if defined(CONFIG_MACH_XIAOMI_С6) || defined(CONFIG_MACH_XIAOMI_MARKW)
+#define LIRCBUF_SIZE 1024
+#else
 #define LIRCBUF_SIZE 256
-
+#endif
 /**
  * ir_lirc_decode() - Send raw IR data to lirc_dev to be relayed to the
  *		      lircd userspace daemon for decoding.

@@ -19,6 +19,12 @@ config MACH_XIAOMI_MIDO
         help
           Support for Xiaomi Redmi Note 4
 
+config MACH_XIAOMI_MARKW                                       
+        bool "xiaomi markw board"
+        select MACH_XIAOMI_MSM8953                          
+        help                                                       
+          This enables support for Xiaomi Redmi 4 Prime
+
 config MACH_XIAOMI_ONC
         bool "xiaomi onc board"
         select MACH_XIAOMI_MSM8953

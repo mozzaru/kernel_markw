@@ -329,7 +329,6 @@ struct device_node *of_batterydata_get_best_profile(
 		i = 0, rc = 0, limit = 0;
 	bool in_range = false;
 	int checknum = 0, match = 0;
-
 	/* read battery id range percentage for best profile */
 	rc = of_property_read_u32(batterydata_container_node,
 			"qcom,batt-id-range-pct", &id_range_pct);
@@ -415,7 +414,7 @@ struct device_node *of_batterydata_get_best_profile(
 	if (!rc)
 		pr_info("%s found\n", battery_type);
 	else
-		pr_info("%s found\n", best_node->name);
+		pr_info("%s not found\n", best_node->name);
 
 	return best_node;
 }

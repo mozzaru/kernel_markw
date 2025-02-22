@@ -4,3 +4,10 @@ config INPUT_FINGERPRINT
 				  Say Y here to enable goodix fingerprint driver support!
 source "drivers/input/fingerprint/goodix/Kconfig"
 source "drivers/input/fingerprint/fpc/Kconfig"
+
+if MACH_XIAOMI_MARKW
+source "drivers/input/fingerprint/goodix_markw/Kconfig"
+source "drivers/input/fingerprint/fpc_markw/Kconfig"
+endif
+
+

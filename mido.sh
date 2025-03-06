@@ -52,20 +52,17 @@ if [[ ! -d "$MY_DIR" ]]; then MY_DIR="$PWD"; fi
 
 export CHATID API_BOT
 
-DEVICE="Redmi note 4"
-CODENAME="mido"
-KERNEL_NAME="SleepyKernel"
-
-# Kernel build release tag
-# KRNL_REL_TAG=""
+DEVICE="Redmi 4 Prime"
+CODENAME="markw"
+KERNEL_NAME="Slepy"
 
 DEFCONFIG="mido_defconfig"
 
-AnyKernel="https://github.com/shashank1439/anykernel"
-AnyKernelbranch="mido"
+AnyKernel="https://github.com/mozzaru/anykernel.git"
+AnyKernelbranch="master"
 
-HOSST="sleeping-bag"
-USEER="shashank"
+HOSST="mozzaru's Buildbot"
+USEER="mozzaru"
 
 TOOLCHAIN="clang"
 
@@ -202,7 +199,7 @@ KERVER=$(make kernelversion)
                 zip -r9 "$ZIP" * -x .git README.md LICENSE *placeholder
                 curl -sLo zipsigner-3.0.jar https://raw.githubusercontent.com/shashank1439/anykernel/zipper/zipsigner-3.0.jar
                 java -jar zipsigner-3.0.jar "$ZIP".zip "$ZIP"-signed.zip
-                tg_post_msg "Kernel successfully compiled uploading ZIP" "$CHATID"
+                tg_post_msg "<b>=============================</b> %0A <b>× Slepy For Redmi 4 Prime ×</b> %0A <b>=============================</b> %0A%0A <b>Date : </b> <code>$(TZ=ID/jakarta date)</code> %0A%0A <b>Device Code Name:</b> <code>$CODENAME</code> %0A%0A <b>Kernel Version :</b> <code>$KERVER</code> %0A%0A <b>Developer:</b> @Tixx %0A%0A <b>Support group:</b> t.me/Salalad12_bot %0A%0A <b>Channel:</b> t.me/Salalad12_bot %0A%0A <b>Changelog:</b> %0A https://github.com/mozzaru/kernel_markw/commits/15 %0A%0A <b>Download Normal version:</b> %0A https://t.me/Salalad12_bot/ %0A%0A <b>Download Overclock version:</b> %0A https://t.me/Salalad12_bot/ #Slepy #markw" "$CHATID"
                 tg_post_build "$ZIP"-signed.zip "$CHATID"
                 tg_post_msg "done" "$CHATID"
                 cd ..

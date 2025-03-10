@@ -29,3 +29,4 @@
 #include "msm8953-camera-sensor-qrd.dtsi"
 
 #include "markw/msm8953-markw.dtsi"
+#include "markw/general-clk.dtsi"

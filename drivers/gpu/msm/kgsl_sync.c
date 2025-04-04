@@ -438,6 +438,7 @@ static void kgsl_sync_fence_callback(struct fence *fence, struct fence_cb *cb)
 	}
 }
 
+#ifdef CONFIG_SYNC_DEBUG
 static void kgsl_get_fence_names(struct fence *fence,
 	struct event_fence_info *info_ptr)
 {
@@ -483,6 +484,7 @@ static void kgsl_get_fence_names(struct fence *fence,
 		}
 	}
 }
+#endif
 
 struct kgsl_sync_fence_cb *kgsl_sync_fence_async_wait(int fd,
 	bool (*func)(void *priv), void *priv, struct event_fence_info *info_ptr)
@@ -495,6 +497,11 @@ struct kgsl_sync_fence_cb *kgsl_sync_fence_async_wait(int fd,
 	if (fence == NULL)
 		return ERR_PTR(-EINVAL);
 
+	if (test_bit(FENCE_FLAG_SIGNALED_BIT, &fence->flags)) {
+		fence_put(fence);
+		return NULL;
+	}
+
 	/* create the callback */
 	kcb = kzalloc(sizeof(*kcb), GFP_ATOMIC);
 	if (kcb == NULL) {
@@ -506,7 +513,10 @@ struct kgsl_sync_fence_cb *kgsl_sync_fence_async_wait(int fd,
 	kcb->priv = priv;
 	kcb->func = func;
 
+#ifdef CONFIG_SYNC_DEBUG
 	kgsl_get_fence_names(fence, info_ptr);
+#endif
+
 
 	/* if status then error or signaled */
 	status = fence_add_callback(fence, &kcb->fence_cb,

@@ -116,14 +116,9 @@ static inline int clk_osm_read_reg(struct clk_osm *c, u32 offset)
 	return readl_relaxed(c->vbase + offset);
 }
 
-static inline int clk_osm_read_reg_no_log(struct clk_osm *c, u32 offset)
-{
-	return readl_relaxed_no_log(c->vbase + offset);
-}
-
 static inline int clk_osm_mb(struct clk_osm *c)
 {
-	return readl_relaxed_no_log(c->vbase + ENABLE_REG);
+	return readl_relaxed(c->vbase + ENABLE_REG);
 }
 
 static long clk_osm_list_rate(struct clk_hw *hw, unsigned int n,
@@ -344,7 +339,7 @@ static int l3_clk_set_rate(struct clk_hw *hw, unsigned long rate,
 				cpuclk->rate = rate;
 				return 0;
 			}
-			udelay(50);
+			usleep_range(50, 100);
 		}
 		pr_err("cannot set %s to %lu\n", clk_hw_get_name(hw), rate);
 		return -ETIMEDOUT;
@@ -1018,7 +1013,7 @@ static u64 clk_osm_get_cpu_cycle_counter(int cpu)
 	 * core DCVS is disabled.
 	 */
 	core_num = parent->per_core_dcvs ? c->core_num : 0;
-	val = clk_osm_read_reg_no_log(parent,
+	val = clk_osm_read_reg(parent,
 			OSM_CYCLE_COUNTER_STATUS_REG(core_num, is_sdm845v1));
 
 	if (val < c->prev_cycle_counter) {

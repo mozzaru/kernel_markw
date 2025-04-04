@@ -23,7 +23,6 @@
 #include "sde_rotator_io_util.h"
 #include "sde_rotator_smmu.h"
 #include "sde_rotator_formats.h"
-#include <linux/pm_qos.h>
 
 /* HW Revisions for different targets */
 #define SDE_GET_MAJOR_REV(rev)	((rev) >> 28)
@@ -241,11 +240,6 @@ struct sde_rot_data_type {
 	u32 *vbif_nrt_qos;
 	u32 npriority_lvl;
 
-	struct pm_qos_request pm_qos_rot_cpu_req;
-	u32 rot_pm_qos_cpu_count;
-	u32 rot_pm_qos_cpu_mask;
-	u32 rot_pm_qos_cpu_dma_latency;
-
 	u32 vbif_memtype_count;
 	u32 *vbif_memtype;
 
@@ -288,7 +282,7 @@ void sde_reg_bus_vote_client_destroy(struct reg_bus_client *client);
 int sde_update_reg_bus_vote(struct reg_bus_client *bus_client, u32 usecase_ndx);
 
 u32 sde_apply_comp_ratio_factor(u32 quota,
-	struct sde_mdp_format_params *fmt,
+	const struct sde_mdp_format_params *fmt,
 	struct sde_mult_factor *factor);
 
 u32 sde_mdp_get_ot_limit(u32 width, u32 height, u32 pixfmt, u32 fps, u32 is_rd);

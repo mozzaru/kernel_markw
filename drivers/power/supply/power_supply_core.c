@@ -324,8 +324,7 @@ static int __power_supply_is_system_supplied(struct device *dev, void *data)
 	unsigned int *count = data;
 
 	(*count)++;
-	if (psy->desc->type != POWER_SUPPLY_TYPE_BATTERY &&
-	    psy->desc->type != POWER_SUPPLY_TYPE_BMS)
+	if (psy->desc->type != POWER_SUPPLY_TYPE_BATTERY)
 		if (!psy->desc->get_property(psy, POWER_SUPPLY_PROP_ONLINE,
 					&ret))
 			return ret.intval;
@@ -803,7 +802,7 @@ __power_supply_register(struct device *parent,
 	atomic_inc(&psy->use_cnt);
 	psy->initialized = true;
 
-	queue_delayed_work(system_power_efficient_wq,
+	queue_delayed_work(system_wq,
 			   &psy->deferred_register_work,
 			   POWER_SUPPLY_DEFERRED_REGISTER_TIME);
 
@@ -812,8 +811,8 @@ __power_supply_register(struct device *parent,
 create_triggers_failed:
 	psy_unregister_thermal(psy);
 register_thermal_failed:
-	device_del(dev);
 wakeup_init_failed:
+	device_del(dev);
 device_add_failed:
 check_supplies_failed:
 dev_set_name_failed:

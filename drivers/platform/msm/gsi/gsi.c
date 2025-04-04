@@ -22,7 +22,7 @@
 #include "gsi_reg.h"
 #include "gsi_emulation.h"
 
-#define GSI_CMD_TIMEOUT (5*HZ)
+#define GSI_CMD_TIMEOUT 5000
 #define GSI_STOP_CMD_TIMEOUT_MS 50
 #define GSI_MAX_CH_LOW_WEIGHT 15
 
@@ -371,7 +371,6 @@ static void gsi_process_chan(struct gsi_xfer_compl_evt *evt,
 	if (callback) {
 		if (atomic_read(&ch_ctx->poll_mode)) {
 			GSIERR("Calling client callback in polling mode\n");
-			WARN_ON(1);
 		}
 		ch_ctx->props.xfer_cb(notify);
 	}
@@ -1280,7 +1279,8 @@ int gsi_alloc_evt_ring(struct gsi_evt_ring_props *props, unsigned long dev_hdl,
 			GSI_EE_n_EV_CH_CMD_OPCODE_BMSK));
 	gsi_writel(val, gsi_ctx->base +
 			GSI_EE_n_EV_CH_CMD_OFFS(ee));
-	res = wait_for_completion_timeout(&ctx->compl, GSI_CMD_TIMEOUT);
+	res = wait_for_completion_timeout(&ctx->compl,
+			msecs_to_jiffies(GSI_CMD_TIMEOUT));
 	if (res == 0) {
 		GSIERR("evt_id=%lu timed out\n", evt_id);
 		if (!props->evchid_valid)
@@ -1409,7 +1409,8 @@ int gsi_dealloc_evt_ring(unsigned long evt_ring_hdl)
 			 GSI_EE_n_EV_CH_CMD_OPCODE_BMSK));
 	gsi_writel(val, gsi_ctx->base +
 			GSI_EE_n_EV_CH_CMD_OFFS(gsi_ctx->per.ee));
-	res = wait_for_completion_timeout(&ctx->compl, GSI_CMD_TIMEOUT);
+	res = wait_for_completion_timeout(&ctx->compl,
+			msecs_to_jiffies(GSI_CMD_TIMEOUT));
 	if (res == 0) {
 		GSIERR("evt_id=%lu timed out\n", evt_ring_hdl);
 		mutex_unlock(&gsi_ctx->mlock);
@@ -1533,7 +1534,8 @@ int gsi_reset_evt_ring(unsigned long evt_ring_hdl)
 			 GSI_EE_n_EV_CH_CMD_OPCODE_BMSK));
 	gsi_writel(val, gsi_ctx->base +
 			GSI_EE_n_EV_CH_CMD_OFFS(gsi_ctx->per.ee));
-	res = wait_for_completion_timeout(&ctx->compl, GSI_CMD_TIMEOUT);
+	res = wait_for_completion_timeout(&ctx->compl,
+			msecs_to_jiffies(GSI_CMD_TIMEOUT));
 	if (res == 0) {
 		GSIERR("evt_id=%lu timed out\n", evt_ring_hdl);
 		mutex_unlock(&gsi_ctx->mlock);
@@ -1840,7 +1842,8 @@ int gsi_alloc_channel(struct gsi_chan_props *props, unsigned long dev_hdl,
 			 GSI_EE_n_GSI_CH_CMD_OPCODE_BMSK));
 	gsi_writel(val, gsi_ctx->base +
 			GSI_EE_n_GSI_CH_CMD_OFFS(ee));
-	res = wait_for_completion_timeout(&ctx->compl, GSI_CMD_TIMEOUT);
+	res = wait_for_completion_timeout(&ctx->compl,
+			msecs_to_jiffies(GSI_CMD_TIMEOUT));
 	if (res == 0) {
 		GSIERR("chan_hdl=%u timed out\n", props->ch_id);
 		mutex_unlock(&gsi_ctx->mlock);
@@ -2075,7 +2078,8 @@ int gsi_start_channel(unsigned long chan_hdl)
 		 GSI_EE_n_GSI_CH_CMD_OPCODE_BMSK));
 	gsi_writel(val, gsi_ctx->base +
 			GSI_EE_n_GSI_CH_CMD_OFFS(gsi_ctx->per.ee));
-	res = wait_for_completion_timeout(&ctx->compl, GSI_CMD_TIMEOUT);
+	res = wait_for_completion_timeout(&ctx->compl,
+			msecs_to_jiffies(GSI_CMD_TIMEOUT));
 	if (res == 0) {
 		GSIERR("chan_hdl=%lu timed out\n", chan_hdl);
 		mutex_unlock(&gsi_ctx->mlock);
@@ -2163,7 +2167,7 @@ int gsi_stop_channel(unsigned long chan_hdl)
 	}
 
 	if (ctx->state == GSI_CHAN_STATE_STOP_IN_PROC) {
-		GSIERR("chan=%lu busy try again\n", chan_hdl);
+		GSIDBG("chan=%lu busy try again\n", chan_hdl);
 		res = -GSI_STATUS_AGAIN;
 		goto free_lock;
 	}
@@ -2232,7 +2236,7 @@ int gsi_stop_db_channel(unsigned long chan_hdl)
 	}
 
 	if (ctx->state == GSI_CHAN_STATE_STOP_IN_PROC) {
-		GSIERR("chan=%lu busy try again\n", chan_hdl);
+		GSIDBG("chan=%lu busy try again\n", chan_hdl);
 		res = -GSI_STATUS_AGAIN;
 		goto free_lock;
 	}
@@ -2282,7 +2286,8 @@ reset:
 		 GSI_EE_n_GSI_CH_CMD_OPCODE_BMSK));
 	gsi_writel(val, gsi_ctx->base +
 			GSI_EE_n_GSI_CH_CMD_OFFS(gsi_ctx->per.ee));
-	res = wait_for_completion_timeout(&ctx->compl, GSI_CMD_TIMEOUT);
+	res = wait_for_completion_timeout(&ctx->compl,
+			msecs_to_jiffies(GSI_CMD_TIMEOUT));
 	if (res == 0) {
 		GSIERR("chan_hdl=%lu timed out\n", chan_hdl);
 		mutex_unlock(&gsi_ctx->mlock);
@@ -2363,7 +2368,8 @@ int gsi_dealloc_channel(unsigned long chan_hdl)
 		 GSI_EE_n_GSI_CH_CMD_OPCODE_BMSK));
 	gsi_writel(val, gsi_ctx->base +
 			GSI_EE_n_GSI_CH_CMD_OFFS(gsi_ctx->per.ee));
-	res = wait_for_completion_timeout(&ctx->compl, GSI_CMD_TIMEOUT);
+	res = wait_for_completion_timeout(&ctx->compl,
+			msecs_to_jiffies(GSI_CMD_TIMEOUT));
 	if (res == 0) {
 		GSIERR("chan_hdl=%lu timed out\n", chan_hdl);
 		mutex_unlock(&gsi_ctx->mlock);
@@ -2805,7 +2811,7 @@ int gsi_config_channel_mode(unsigned long chan_hdl, enum gsi_chan_mode mode)
 		curr = GSI_CHAN_MODE_CALLBACK;
 
 	if (mode == curr) {
-		GSIERR("already in requested mode %u chan_hdl=%lu\n",
+		GSIDBG("already in requested mode %u chan_hdl=%lu\n",
 				curr, chan_hdl);
 		return -GSI_STATUS_UNSUPPORTED_OP;
 	}

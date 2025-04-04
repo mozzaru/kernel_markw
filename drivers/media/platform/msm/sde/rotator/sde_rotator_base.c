@@ -59,7 +59,7 @@ static inline bool validate_comp_ratio(struct sde_mult_factor *factor)
 }
 
 u32 sde_apply_comp_ratio_factor(u32 quota,
-	struct sde_mdp_format_params *fmt,
+	const struct sde_mdp_format_params *fmt,
 	struct sde_mult_factor *factor)
 {
 	struct sde_rot_data_type *mdata = sde_rot_get_mdata();
@@ -180,7 +180,7 @@ void sde_mdp_halt_vbif_xin(struct sde_mdp_vbif_halt_params *params)
 u32 sde_mdp_get_ot_limit(u32 width, u32 height, u32 pixfmt, u32 fps, u32 is_rd)
 {
 	struct sde_rot_data_type *mdata = sde_rot_get_mdata();
-	struct sde_mdp_format_params *fmt;
+	const struct sde_mdp_format_params *fmt;
 	u32 ot_lim;
 	u32 is_yuv;
 	u64 res;
@@ -715,16 +715,6 @@ static int sde_mdp_parse_dt_misc(struct platform_device *pdev,
 	sde_mdp_parse_rot_lut_setting(pdev, mdata);
 
 	sde_mdp_parse_inline_rot_lut_setting(pdev, mdata);
-
-	rc = of_property_read_u32(pdev->dev.of_node,
-		"qcom,mdss-rot-qos-cpu-mask", &data);
-	mdata->rot_pm_qos_cpu_mask = (!rc ? data : 0);
-
-	rc = of_property_read_u32(pdev->dev.of_node,
-		 "qcom,mdss-rot-qos-cpu-dma-latency", &data);
-	mdata->rot_pm_qos_cpu_dma_latency = (!rc ? data : 0);
-
-	sde_rotator_pm_qos_add(mdata);
 
 	mdata->mdp_base = mdata->sde_io.base + SDE_MDP_OFFSET;
 

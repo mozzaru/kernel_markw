@@ -147,12 +147,12 @@ static u32 gicd_reg_bits_per_irq[NUM_SAVED_GICD_REGS] = {
 	    i++)
 
 #define read_spi_word_offset(base, reg, i) \
-	readl_relaxed_no_log(	\
+	readl_relaxed(	\
 			base + gicd_offset[reg] + i * 4 +	\
 			SPI_START_IRQ * gicd_reg_bits_per_irq[reg] / 8)
 
 #define restore_spi_word_offset(base, reg, i) \
-	writel_relaxed_no_log(	\
+	writel_relaxed(	\
 			saved_spi_regs_start[reg][i],\
 			base + gicd_offset[reg] + i * 4 +	\
 			SPI_START_IRQ * gicd_reg_bits_per_irq[reg] / 8)
@@ -323,7 +323,7 @@ static void _gic_v3_dist_restore_set_reg(u32 offset)
 	int irq_nr = IRQ_NR_BOUND(gic_data.irq_nr) - SPI_START_IRQ;
 
 	for (i = 0; i < DIV_ROUND_UP(irq_nr, 32); i++, j += 32) {
-		u32 reg_val = readl_relaxed_no_log(base + offset + i * 4 + 4);
+		u32 reg_val = readl_relaxed(base + offset + i * 4 + 4);
 		bool irqs_restore_updated = 0;
 
 		for (l = 0; l < 32; l++) {
@@ -334,7 +334,7 @@ static void _gic_v3_dist_restore_set_reg(u32 offset)
 		}
 
 		if (irqs_restore_updated) {
-			writel_relaxed_no_log(
+			writel_relaxed(
 				reg_val, base + offset + i * 4 + 4);
 		}
 	}
@@ -385,7 +385,7 @@ static void _gic_v3_dist_clear_reg(u32 offset)
 		}
 
 		if (irqs_restore_updated) {
-			writel_relaxed_no_log(
+			writel_relaxed(
 				clear, base + offset + i * 4 + 4);
 		}
 	}
@@ -1414,7 +1414,7 @@ static int get_cpu_number(struct device_node *dn)
 {
 	const __be32 *cell;
 	u64 hwid;
-	int i;
+	int cpu;
 
 	cell = of_get_property(dn, "reg", NULL);
 	if (!cell)
@@ -1428,9 +1428,9 @@ static int get_cpu_number(struct device_node *dn)
 	if (hwid & ~MPIDR_HWID_BITMASK)
 		return -1;
 
-	for (i = 0; i < num_possible_cpus(); i++)
-		if (cpu_logical_map(i) == hwid)
-			return i;
+	for_each_possible_cpu(cpu)
+		if (cpu_logical_map(cpu) == hwid)
+			return cpu;
 
 	return -1;
 }
@@ -1550,7 +1550,7 @@ static void __init gic_of_setup_kvm_info(struct device_node *node)
 	gic_set_kvm_info(&gic_v3_kvm_info);
 }
 
-static int __init gic_of_init(struct device_node *node, struct device_node *parent)
+static int __init gicv3_of_init(struct device_node *node, struct device_node *parent)
 {
 	void __iomem *dist_base;
 	struct redist_region *rdist_regs;
@@ -1627,7 +1627,7 @@ out_unmap_dist:
 	return err;
 }
 
-IRQCHIP_DECLARE(gic_v3, "arm,gic-v3", gic_of_init);
+IRQCHIP_DECLARE(gic_v3, "arm,gic-v3", gicv3_of_init);
 
 #ifdef CONFIG_ACPI
 static struct

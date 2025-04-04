@@ -1358,7 +1358,7 @@ hdd_extract_assigned_int_from_str
 {
     int tempInt;
     int v = 0;
-    char buf[32];
+    char buf[33];
     int val = 0;
     *pLastArg = FALSE;
 
@@ -1372,7 +1372,7 @@ hdd_extract_assigned_int_from_str
 
     while ((SPACE_ASCII_VALUE  == *pInPtr) && ('\0' !=  *pInPtr)) pInPtr++;
 
-    val = sscanf(pInPtr, "%32s ", buf);
+    val = sscanf(pInPtr, "%31s ", buf);
     if (val < 0 && val > strlen(pInPtr))
     {
         return NULL;
@@ -8528,6 +8528,14 @@ int hdd_mon_open (struct net_device *dev)
 
     vos_ssr_protect(__func__);
     ret = __hdd_mon_open(dev);
+    // Register wireless extensions
+    if( VOS_STATUS_SUCCESS !=  (ret = hdd_register_wext(dev)))
+    {
+	hddLog(VOS_TRACE_LEVEL_FATAL,
+	       "hdd_register_wext() failed with status code %08d [x%08x]",
+	        ret, ret);
+	ret = VOS_STATUS_E_FAILURE;
+    }
     vos_ssr_unprotect(__func__);
 
     return ret;
@@ -9095,7 +9103,7 @@ done:
    return ret;
 }
 
-static int hdd_open_cesium_nl_sock()
+static int hdd_open_cesium_nl_sock(void)
 {
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,6,0))
    struct netlink_kernel_cfg cfg = {
@@ -9126,7 +9134,7 @@ static int hdd_open_cesium_nl_sock()
    return ret;
 }
 
-static void hdd_close_cesium_nl_sock()
+static void hdd_close_cesium_nl_sock(void)
 {
    if (NULL != cesium_nl_srv_sock)
    {
@@ -10307,15 +10315,6 @@ hdd_adapter_t* hdd_open_adapter( hdd_context_t *pHddCtx, tANI_U8 session_type,
 
          pAdapter->device_mode = session_type;
          pAdapter->wdev.iftype = NL80211_IFTYPE_MONITOR;
-
-         // Register wireless extensions
-         if( VOS_STATUS_SUCCESS !=  (status = hdd_register_wext(pAdapter->dev)))
-         {
-              hddLog(VOS_TRACE_LEVEL_FATAL,
-                   "hdd_register_wext() failed with status code %08d [x%08x]",
-                                                      status, status );
-              status = VOS_STATUS_E_FAILURE;
-         }
 
 #if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,29)
          pAdapter->dev->netdev_ops = &wlan_mon_drv_ops;
@@ -13972,8 +13971,7 @@ void wlan_hdd_defer_scan_init_work(hdd_context_t *pHddCtx,
         pHddCtx->scan_ctxt.attempt = 0;
         pHddCtx->scan_ctxt.magic = TDLS_CTX_MAGIC;
     }
-    queue_delayed_work(system_freezable_power_efficient_wq,
-                          &pHddCtx->scan_ctxt.scan_work, delay);
+    schedule_delayed_work(&pHddCtx->scan_ctxt.scan_work, delay);
 }
 
 void wlan_hdd_init_deinit_defer_scan_context(scan_context_t *scan_ctx)

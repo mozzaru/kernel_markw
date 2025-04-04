@@ -273,7 +273,7 @@ int mdss_mdp_overlay_req_check(struct msm_fb_data_type *mfd,
 	    req->src_rect.w < min_src_size || req->src_rect.h < min_src_size ||
 	    CHECK_BOUNDS(req->src_rect.x, req->src_rect.w, req->src.width) ||
 	    CHECK_BOUNDS(req->src_rect.y, req->src_rect.h, req->src.height)) {
-		pr_err("invalid source image img wh=%dx%d rect=%d,%d,%d,%d\n",
+		pr_debug("invalid source image img wh=%dx%d rect=%d,%d,%d,%d\n",
 		       req->src.width, req->src.height,
 		       req->src_rect.x, req->src_rect.y,
 		       req->src_rect.w, req->src_rect.h);
@@ -6456,7 +6456,7 @@ static int __vsync_retire_setup(struct msm_fb_data_type *mfd)
 		kthread_init_work(&mdp5_data->vsync_work,
 			__vsync_retire_work_handler);
 
-		mdp5_data->thread = kthread_run(kthread_worker_fn,
+		mdp5_data->thread = kthread_run_perf_critical(kthread_worker_fn,
 					&mdp5_data->worker,
 					"vsync_retire_work");
 		if (IS_ERR(mdp5_data->thread)) {
@@ -6736,7 +6736,8 @@ int mdss_mdp_overlay_init(struct msm_fb_data_type *mfd)
 		pr_warn("problem creating link to mdss_fb sysfs\n");
 
 	if (mfd->panel_info->type == MIPI_VIDEO_PANEL ||
-	    mfd->panel_info->type == DTV_PANEL) {
+	    mfd->panel_info->type == DTV_PANEL ||
+	    mfd->panel_info->type == MIPI_CMD_PANEL) {
 		rc = sysfs_create_group(&dev->kobj,
 			&dynamic_fps_fs_attrs_group);
 		if (rc) {

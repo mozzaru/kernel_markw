@@ -197,13 +197,13 @@ struct msm_port {
 static
 void msm_write(struct uart_port *port, unsigned int val, unsigned int off)
 {
-	writel_relaxed_no_log(val, port->membase + off);
+	writel_relaxed(val, port->membase + off);
 }
 
 static
 unsigned int msm_read(struct uart_port *port, unsigned int off)
 {
-	return readl_relaxed_no_log(port->membase + off);
+	return readl_relaxed(port->membase + off);
 }
 
 /*
@@ -1619,6 +1619,7 @@ static inline struct uart_port *msm_get_port_from_line(unsigned int line)
 static void __msm_console_write(struct uart_port *port, const char *s,
 				unsigned int count, bool is_uartdm)
 {
+	unsigned long flags;
 	int i;
 	int num_newlines = 0;
 	bool replaced = false;
@@ -1635,6 +1636,8 @@ static void __msm_console_write(struct uart_port *port, const char *s,
 		if (s[i] == '\n')
 			num_newlines++;
 	count += num_newlines;
+
+	local_irq_save(flags);
 
 	if (port->sysrq)
 		locked = 0;
@@ -1677,12 +1680,14 @@ static void __msm_console_write(struct uart_port *port, const char *s,
 			cpu_relax();
 
 		buffer = (const u32 *)buf;
-		writel_relaxed_no_log(*buffer, tf);
+		writel_relaxed(*buffer, tf);
 		i += num_chars;
 	}
 
 	if (locked)
 		spin_unlock(&port->lock);
+
+	local_irq_restore(flags);
 }
 
 static void msm_console_write(struct console *co, const char *s,

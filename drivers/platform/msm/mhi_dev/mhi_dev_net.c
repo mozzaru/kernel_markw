@@ -75,10 +75,6 @@ struct mhi_dev_net_chan_attr {
 	if (_msg_lvl >= mhi_net_msg_lvl) { \
 		pr_err("[%s] "_msg, __func__, ##__VA_ARGS__); \
 	} \
-	if (mhi_net_ipc_log && (_msg_lvl >= mhi_net_ipc_log_lvl)) { \
-		ipc_log_string(mhi_net_ipc_log,                     \
-			"[%s] " _msg, __func__, ##__VA_ARGS__);     \
-	} \
 } while (0)
 
 module_param(mhi_net_msg_lvl, uint, 0644);
@@ -611,7 +607,9 @@ static int mhi_dev_net_close(void)
 	}
 	/* freeing mhi client and IPC context */
 	kfree(client);
-	kfree(mhi_net_ipc_log);
+	if (mhi_net_ipc_log)
+		kfree(mhi_net_ipc_log);
+
 	return 0;
 }
 
@@ -691,13 +689,12 @@ client_register_fail:
 }
 EXPORT_SYMBOL(mhi_dev_net_interface_init);
 
-void __exit mhi_dev_net_exit(void)
+static void __exit mhi_dev_net_exit(void)
 {
 	mhi_dev_net_log(MHI_INFO,
 			"MHI Network Interface Module exited ");
 	mhi_dev_net_close();
 }
-EXPORT_SYMBOL(mhi_dev_net_exit);
 
 static int mhi_dev_net_probe(struct platform_device *pdev)
 {

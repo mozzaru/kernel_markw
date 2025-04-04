@@ -1770,7 +1770,8 @@ static int mdss_mdp_irq_clk_setup(struct mdss_data_type *mdata)
 	pr_debug("max mdp clk rate=%d\n", mdata->max_mdp_clk_rate);
 
 	ret = devm_request_irq(&mdata->pdev->dev, mdss_mdp_hw.irq_info->irq,
-				mdss_irq_handler, 0, "MDSS", mdata);
+				mdss_irq_handler,
+				IRQF_PERF_CRITICAL, "MDSS", mdata);
 	if (ret) {
 		pr_err("mdp request_irq() failed!\n");
 		return ret;
@@ -4549,7 +4550,7 @@ static int mdss_mdp_parse_dt_handler(struct platform_device *pdev,
 	rc = of_property_read_u32_array(pdev->dev.of_node, prop_name,
 					offsets, len);
 	if (rc) {
-		pr_err("Error from prop %s : u32 array read\n", prop_name);
+		pr_debug("Error from prop %s : u32 array read\n", prop_name);
 		return -EINVAL;
 	}
 
@@ -4648,7 +4649,7 @@ struct mdss_panel_cfg *mdss_panel_intf_type(int intf_val)
 }
 EXPORT_SYMBOL(mdss_panel_intf_type);
 
-struct irq_info *mdss_intr_line()
+struct irq_info *mdss_intr_line(void)
 {
 	return mdss_mdp_hw.irq_info;
 }

@@ -116,7 +116,7 @@
 
 /*
  * After both sides get CONNECTED,
- * there is a race between one side queueing rx buffer and the other side
+ * there is a race between one side queuing rx buffer and the other side
  * trying to call glink_tx() , this race is only on the 1st tx.
  * Do tx retry with some delay to allow the other side to queue rx buffer.
  */
@@ -2012,7 +2012,8 @@ static int spcom_handle_write(struct spcom_channel *ch,
 
 	if (!ch && cmd_id != SPCOM_CMD_CREATE_CHANNEL) {
 		pr_err("channel context is null\n");
-		return -EINVAL;
+		ret = -EINVAL;
+		goto exit_err;
 	}
 
 	switch (cmd_id) {
@@ -2036,6 +2037,7 @@ static int spcom_handle_write(struct spcom_channel *ch,
 		ret = -EINVAL;
 	}
 
+exit_err:
 	mutex_unlock(&spcom_dev->cmd_lock);
 
 	return ret;
@@ -2584,6 +2586,12 @@ static int spcom_create_channel_chardev(const char *name)
 	void *priv;
 	struct cdev *cdev;
 
+	if (!name || strnlen(name, SPCOM_CHANNEL_NAME_SIZE) ==
+			SPCOM_CHANNEL_NAME_SIZE) {
+		pr_err("invalid channel name\n");
+		return -EINVAL;
+	}
+
 	pr_debug("Add channel [%s].\n", name);
 
 	ch = spcom_find_channel_by_name(name);
@@ -2605,7 +2613,12 @@ static int spcom_create_channel_chardev(const char *name)
 	spcom_dev->channel_count++;
 	devt = spcom_dev->device_no + spcom_dev->channel_count;
 	priv = ch;
-	dev = device_create(cls, parent, devt, priv, name);
+
+	/*
+	 * Pass channel name as formatted string to avoid abuse by using a
+	 * formatted string as channel name
+	 */
+	dev = device_create(cls, parent, devt, priv, "%s", name);
 	if (IS_ERR(dev)) {
 		pr_err("device_create failed.\n");
 		kfree(cdev);

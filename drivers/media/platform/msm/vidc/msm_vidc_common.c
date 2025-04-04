@@ -6618,10 +6618,15 @@ struct msm_vidc_buffer *msm_comm_get_vidc_buffer(struct msm_vidc_inst *inst,
 		list_add_tail(&mbuf->list, &inst->registeredbufs.list);
 
 	mutex_unlock(&inst->registeredbufs.lock);
-	if (rc == -EEXIST) {
-		print_vidc_buffer(VIDC_DBG, "qbuf upon rbr", inst, mbuf);
+
+	/*
+	 * Return mbuf if decode batching is enabled as this buffer
+	 * may trigger queuing full batch to firmware, also this buffer
+	 * will not be queued to firmware while full batch queuing,
+	 * it will be queued when rbr event arrived from firmware.
+	 */
+	if (rc == -EEXIST && !inst->batch.enable)
 		return ERR_PTR(rc);
-	}
 
 	return mbuf;
 

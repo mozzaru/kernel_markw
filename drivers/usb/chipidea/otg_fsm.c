@@ -234,8 +234,8 @@ static void ci_otg_add_timer(struct ci_hdrc *ci, enum otg_fsm_timer t)
 				ktime_set(timer_sec, timer_nsec));
 	ci->enabled_otg_timer_bits |= (1 << t);
 	if ((ci->next_otg_timer == NUM_OTG_FSM_TIMERS) ||
-			(ci->hr_timeouts[ci->next_otg_timer].tv64 >
-						ci->hr_timeouts[t].tv64)) {
+			(ci->hr_timeouts[ci->next_otg_timer] >
+						ci->hr_timeouts[t])) {
 			ci->next_otg_timer = t;
 			hrtimer_start_range_ns(&ci->otg_fsm_hrtimer,
 					ci->hr_timeouts[t], NSEC_PER_MSEC,
@@ -260,8 +260,10 @@ static void ci_otg_del_timer(struct ci_hdrc *ci, enum otg_fsm_timer t)
 	ci->enabled_otg_timer_bits &= ~(1 << t);
 	if (ci->next_otg_timer == t) {
 		if (ci->enabled_otg_timer_bits == 0) {
+			spin_unlock_irqrestore(&ci->lock, flags);
 			/* No enabled timers after delete it */
 			hrtimer_cancel(&ci->otg_fsm_hrtimer);
+			spin_lock_irqsave(&ci->lock, flags);
 			ci->next_otg_timer = NUM_OTG_FSM_TIMERS;
 		} else {
 			/* Find the next timer */
@@ -269,8 +271,8 @@ static void ci_otg_del_timer(struct ci_hdrc *ci, enum otg_fsm_timer t)
 			for_each_set_bit(cur_timer, &enabled_timer_bits,
 							NUM_OTG_FSM_TIMERS) {
 				if ((next_timer == NUM_OTG_FSM_TIMERS) ||
-					(ci->hr_timeouts[next_timer].tv64 <
-					ci->hr_timeouts[cur_timer].tv64))
+					(ci->hr_timeouts[next_timer] <
+					 ci->hr_timeouts[cur_timer]))
 					next_timer = cur_timer;
 			}
 		}
@@ -397,14 +399,14 @@ static enum hrtimer_restart ci_otg_hrtimer_func(struct hrtimer *t)
 
 	now = ktime_get();
 	for_each_set_bit(cur_timer, &enabled_timer_bits, NUM_OTG_FSM_TIMERS) {
-		if (now.tv64 >= ci->hr_timeouts[cur_timer].tv64) {
+		if (now >= ci->hr_timeouts[cur_timer]) {
 			ci->enabled_otg_timer_bits &= ~(1 << cur_timer);
 			if (otg_timer_handlers[cur_timer])
 				ret = otg_timer_handlers[cur_timer](ci);
 		} else {
 			if ((next_timer == NUM_OTG_FSM_TIMERS) ||
-				(ci->hr_timeouts[cur_timer].tv64 <
-					ci->hr_timeouts[next_timer].tv64))
+				(ci->hr_timeouts[cur_timer] <
+					ci->hr_timeouts[next_timer]))
 				next_timer = cur_timer;
 		}
 	}

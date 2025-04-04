@@ -48,24 +48,15 @@ module_param_named(debug_mask, msm_smem_debug_mask,
 static void *smem_ipc_log_ctx;
 #define NUM_LOG_PAGES 4
 
-#define IPC_LOG(x...) do {                                   \
-		if (smem_ipc_log_ctx)                        \
-			ipc_log_string(smem_ipc_log_ctx, x); \
-	} while (0)
-
+#define IPC_LOG(x...) ((void)0)
 
 #define LOG_ERR(x...) do {  \
 		pr_err(x);  \
-		IPC_LOG(x); \
 	} while (0)
-#define SMEM_DBG(x...) do {                               \
-		if (msm_smem_debug_mask & MSM_SMEM_DEBUG) \
-			IPC_LOG(x);                       \
-	} while (0)
-#define SMEM_INFO(x...) do {                             \
-		if (msm_smem_debug_mask & MSM_SMEM_INFO) \
-			IPC_LOG(x);                      \
-	} while (0)
+
+#define SMEM_DBG(x...) ((void)0)
+
+#define SMEM_INFO(x...) ((void)0)
 
 #define SMEM_SPINLOCK_SMEM_ALLOC       "S:3"
 
@@ -1013,7 +1004,7 @@ unsigned int smem_get_version(unsigned int idx)
 	int *version_array;
 	struct smem_shared *smem = smem_ram_base;
 
-	if (idx > 32) {
+	if (idx >= 32) {
 		pr_err("%s: invalid idx:%d\n", __func__, idx);
 		return 0;
 	}
